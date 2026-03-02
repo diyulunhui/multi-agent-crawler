@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from src.config.settings import AppConfig
-from src.domain.events import SessionType, Task
+from src.domain.events import EventType, SessionType, Task
 from src.domain.models import AuctionSession
 from src.scheduler.task_scheduler import TaskScheduler
 from src.scraping.adapter import FetchContext, ScraplingAdapter
@@ -27,6 +27,9 @@ class DiscoveryExecutor:
         self.scheduler = scheduler
 
     def execute(self, task: Task) -> ExecutorResult:
+        if task.event_type != EventType.DISCOVER_SESSIONS:
+            return ExecutorResult(success=False, message=f"DISCOVERY_EXECUTOR 不支持任务类型: {task.event_type.value}")
+
         # 发现入口页并写入 session，同时派发 DISCOVER_LOTS 任务。
         url = task.payload.get("url") or task.entity_id
         if not isinstance(url, str) or not url:

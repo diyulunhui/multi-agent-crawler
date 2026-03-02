@@ -27,15 +27,22 @@ class _MemoryTaskRepo:
         self.retried: list[tuple[str, int]] = []
         self._lock = threading.Lock()
 
-    def mark_running(self, task_id: str) -> None:
+    def mark_running(self, task_id: str, dedupe_key: str | None = None) -> None:
         with self._lock:
             self.running.append(task_id)
 
-    def mark_succeeded(self, task_id: str) -> None:
+    def mark_succeeded(self, task_id: str, dedupe_key: str | None = None) -> None:
         with self._lock:
             self.succeeded.append(task_id)
 
-    def mark_failed(self, task_id: str, error: str, retry_count: int, max_retries: int) -> None:
+    def mark_failed(
+        self,
+        task_id: str,
+        error: str,
+        retry_count: int,
+        max_retries: int,
+        dedupe_key: str | None = None,
+    ) -> None:
         with self._lock:
             self.failed.append((task_id, error, retry_count))
 

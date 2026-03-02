@@ -97,6 +97,63 @@ class RecoveryServiceTestCase(unittest.TestCase):
         self.assertEqual(0, requeue_count)
         self.assertEqual(0, self.queue.qsize())
 
+    def test_mark_status_should_fallback_to_dedupe_key_when_task_id_changed(self) -> None:
+        # dedupe 冲突导致 task_id 被新任务覆盖时，旧任务回写状态应能通过 dedupe_key 命中。
+        old_task = Task(
+            task_id="task_discover_old",
+            event_type=EventType.DISCOVER_LOTS,
+            entity_id="s_fallback",
+            run_at=datetime.now(timezone.utc),
+            priority=TaskPriority.DISCOVERY,
+            payload={"session_id": "s_fallback", "url": "https://www.hxguquan.com/goods-list.html?gid=1"},
+            retry_count=0,
+            max_retries=3,
+        )
+        self.task_repo.upsert_task(old_task)
+
+        new_task = Task(
+            task_id="task_discover_new",
+            event_type=EventType.DISCOVER_LOTS,
+            entity_id="s_fallback",
+            run_at=datetime.now(timezone.utc),
+            priority=TaskPriority.DISCOVERY,
+            payload={"session_id": "s_fallback", "url": "https://www.hxguquan.com/goods-list.html?gid=1"},
+            retry_count=0,
+            max_retries=3,
+        )
+        self.task_repo.upsert_task(new_task)
+
+        # 模拟旧版行为/历史遗留：同 dedupe_key 的 row 被改写成新 task_id。
+        overwritten_task_id = "task_discover_overwritten"
+        with self.db.connection() as conn:
+            conn.execute(
+                """
+                UPDATE task_state
+                SET task_id = ?
+                WHERE dedupe_key = ?
+                """,
+                (overwritten_task_id, old_task.dedupe_key()),
+            )
+
+        self.assertIsNone(self.task_repo.get_by_task_id(old_task.task_id))
+        state_new = self.task_repo.get_by_task_id(overwritten_task_id)
+        self.assertIsNotNone(state_new)
+        assert state_new is not None
+        self.assertEqual(TaskStatus.PENDING, state_new.status)
+
+        dedupe_key = old_task.dedupe_key()
+        self.task_repo.mark_running(old_task.task_id, dedupe_key=dedupe_key)
+        state_running = self.task_repo.get_by_task_id(old_task.task_id)
+        self.assertIsNotNone(state_running)
+        assert state_running is not None
+        self.assertEqual(TaskStatus.RUNNING, state_running.status)
+
+        self.task_repo.mark_succeeded(old_task.task_id, dedupe_key=dedupe_key)
+        state_succeeded = self.task_repo.get_by_task_id(old_task.task_id)
+        self.assertIsNotNone(state_succeeded)
+        assert state_succeeded is not None
+        self.assertEqual(TaskStatus.SUCCEEDED, state_succeeded.status)
+
 
 if __name__ == "__main__":
     unittest.main()

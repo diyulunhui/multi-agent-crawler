@@ -86,12 +86,13 @@ class WorkerPool:
                 continue
 
             try:
-                self.task_repo.mark_running(task.task_id)
+                dedupe_key = task.dedupe_key()
+                self.task_repo.mark_running(task.task_id, dedupe_key=dedupe_key)
                 result = self.dispatcher(task)
                 success = bool(getattr(result, "success", False))
                 if not success:
                     raise RuntimeError(getattr(result, "message", "任务执行失败"))
-                self.task_repo.mark_succeeded(task.task_id)
+                self.task_repo.mark_succeeded(task.task_id, dedupe_key=dedupe_key)
             except BaseException as exc:
                 self._handle_failure(task, exc)
             finally:
@@ -130,6 +131,7 @@ class WorkerPool:
             error=f"{type(error).__name__}: {error}",
             retry_count=decision.next_retry_count,
             max_retries=task.max_retries,
+            dedupe_key=task.dedupe_key(),
         )
 
         if not decision.should_retry:

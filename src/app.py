@@ -157,6 +157,10 @@ class AuctionCrawlerApp:
     def dispatch(self, task: Task):
         # 动态编排器优先选择 skill 路由，失败时自动回退静态规则。
         target = self.dynamic_orchestrator.select_dispatch_target(task)
+        # 运行时安全兜底：若动态编排给出与事件类型不匹配的目标，强制回退静态映射。
+        expected_target = DynamicSkillOrchestrator.EVENT_DEFAULT_TARGET.get(task.event_type)
+        if expected_target is not None and target != expected_target:
+            target = expected_target
         if target == DispatchTarget.DISCOVERY:
             return self.discovery_executor.execute(task)
         if target == DispatchTarget.LOT:

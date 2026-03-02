@@ -90,6 +90,28 @@ class DiscoveryExecutorTestCase(unittest.TestCase):
         self.assertEqual(2, len(session_repo.saved))
         self.assertEqual(["s_special"], scheduler.session_scrape_calls)
 
+    def test_discovery_should_reject_non_discover_sessions_event(self) -> None:
+        config = replace(AppConfig.from_env())
+        adapter = _FakeAdapter()
+        session_repo = _FakeSessionRepo()
+        scheduler = _FakeScheduler()
+        executor = DiscoveryExecutor(config, adapter, session_repo, scheduler)
+
+        task = Task(
+            event_type=EventType.DISCOVER_LOTS,
+            entity_id="s_normal",
+            run_at=datetime.now(timezone.utc),
+            priority=TaskPriority.DISCOVERY,
+            payload={"url": "https://www.hxguquan.com/goods-list.html?gid=1002", "session_id": "s_normal"},
+        )
+        result = executor.execute(task)
+
+        self.assertFalse(result.success)
+        self.assertIn("不支持任务类型", result.message)
+        self.assertEqual(0, len(session_repo.saved))
+        self.assertEqual(0, len(scheduler.discover_lots_calls))
+        self.assertEqual(0, len(scheduler.session_scrape_calls))
+
 
 if __name__ == "__main__":
     unittest.main()
