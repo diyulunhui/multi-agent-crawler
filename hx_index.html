@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      http-equiv="Cache-Control"
+      content="no-cache, no-store, must-revalidate"
+    />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <link
+      rel="stylesheet"
+      href="https://imgali.huaxiaguquan.com/app/v3/js/swiper/idangerous.swiper2.7.6.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://imgali.huaxiaguquan.com/app/v3/js/marquee/liMarquee.css"
+    />
+    <link rel="stylesheet" href="css/style.css?40" />
+    <title>华夏古泉-华夏古泉（北京）网络科技有限公司</title>
+  </head>
+  <body>
+    <div class="index">
+      <div class="head"></div>
+      <div class="center">
+        <div class="top-box">
+          <div class="top-right-box">
+            <div class="personal-center">
+              <div class="no-login">
+                <div class="no-login-box">
+                  <h1>Hi,欢迎登录华夏古泉~</h1>
+                  <p>
+                    <a href="rule.html">平台交易规则与用户服务协议</a>
+                    <!-- <a href="problem.html">
+                                        委托方式
+                                    </a>
+                                    <i>|</i>
+                                    <a href="problem.html#wt-2">
+                                        收费标准
+                                    </a>
+                                    <i>|</i>
+                                    <a href="problem.html#buy-1">
+                                        如何竞买
+                                    </a> -->
+                  </p>
+                  <a class="btn-red" href="login.html">登录 / 注册</a>
+                </div>
+              </div>
+              <div class="already-login">
+                <p class="my-user">
+                  <a class="user-name" href="mine.html">Hi，</a>
+                </p>
+                <ul>
+                  <!-- <li>
+                    <a href="withdraw-balance.html"
+                      ><i class="iconfont green">&#xe68b;</i>余额提现</a
+                    >
+                  </li> -->
+                  <li>
+                    <a href="letter.html"
+                      ><i class="iconfont green">&#xe6d7;</i>站内客服</a
+                    >
+                  </li>
+                  <li>
+                    <a href="pay-deposit.html"
+                      ><i class="iconfont yellow1 deposit">&#xe614;</i
+                      >缴保证金</a
+                    >
+                  </li>
+                  <li>
+                    <a href="withdraw-deposit.html"
+                      ><i class="iconfont blue retreat">&#xe68e;</i>退保证金</a
+                    >
+                  </li>
+                  <li>
+                    <a href="order.html"
+                      ><i class="iconfont orange2">&#xe69f;</i>我的订单</a
+                    >
+                  </li>
+                  <li>
+                    <a href="collection.html"
+                      ><i class="iconfont orange attention">&#xe687;</i
+                      >竞买与关注</a
+                    >
+                  </li>
+                  <li>
+                    <a href="order-sell.html"
+                      ><i class="iconfont yellow2">&#xe6a0;</i>委托出品</a
+                    >
+                  </li>
+                </ul>
+                <div class="clear-fix"></div>
+              </div>
+              <div class="notice">
+                <h2><i class="iconfont">&#xe714;</i>泉友须知</h2>
+                <ul>
+                  <li><a href="rule.html#wt-2">藏品委托</a></li>
+                  <li><a href="rule.html#rule-14">真品担保与质保说明</a></li>
+                  <li><a href="rule.html">平台交易规则与用户服务协议</a></li>
+                  <li>
+                    <a href="download.html">微钱币App下载</a
+                    ><em style="margin: 0 14px">|</em
+                    ><a
+                      href="https://hximg.oss-cn-hangzhou.aliyuncs.com/hxgqw/la/lahxgqw.4.0.exe"
+                      >聊天室电脑软件下载</a
+                    >
+                  </li>
+                </ul>
+                <div class="official-account">
+                  <div class="pull-left official-qr">
+                    <img
+                      src="https://imgali.huaxiaguquan.com/app/v3/images/qrcode/qr-auction.jpg?2"
+                      alt=""
+                    />
+                    <p>接收物流通知</p>
+                  </div>
+                  <div class="pull-right official-qr">
+                    <img
+                      src="//imgali.huaxiaguquan.com/app/v3/images/qrcode/pay-qr.jpg"
+                      alt=""
+                    />
+                    <p>缴纳保证金</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="top-middle-box">
+            <div class="banner">
+              <div class="container"></div>
+              <div class="pagination"></div>
+              <!-- <div class="swiper-container swiper-container1">
+                <div class="swiper-wrapper" id="banner">
+                </div>
+                <div class="pagination pagination1"></div>
+              </div> -->
+            </div>
+            <div class="row">
+              <div class="chat-room">
+                <p>
+                  <span>华夏古泉迎春专场 03-04 (周三) 20:00 结标</span>
+                </p>
+                <div class="roll" id="roll">
+                  <ul
+                    class="chat-pic"
+                    style="display: flex; overflow-x: scroll"
+                  ></ul>
+                </div>
+              </div>
+              <!-- <div class="chat-room">
+                            <p>
+                                <span>ASG评级邮票专场-添加中 04-20 (周三) 21:00 结标</span>
+                                <a class="yellow chartroom-btn" href="goods-list.html?gid=50688">点击进入>>></a>
+                            </p>
+                            <div class="roll" id="roll">
+                                <ul class="chat-pic"> 
+                                    <li><a href="goods-list.html?gid=50688"><span><img class="chatImg chatImg0" src="https://imgali.huaxiaguquan.com/pic/2022/0406/357370582237329541w2076h3342_160_.jpg" alt=""></span></a></li>
+                                    <li><a href="goods-list.html?gid=50688"><span><img class="chatImg chatImg1" src="https://imgali.huaxiaguquan.com/pic/2022/0411/361616237895588451w2376h3510_160_.jpg" alt=""></span></a></li>
+                                    <li><a href="goods-list.html?gid=50688"><span><img class="chatImg chatImg2" src="https://imgali.huaxiaguquan.com/pic/2022/0411/361575399923938911w1500h2231_160_.jpg" alt=""></span></a></li>
+                                    <li><a href="goods-list.html?gid=50688"><span><img class="chatImg chatImg3" src="https://imgali.huaxiaguquan.com/pic/2022/0411/361573908944490261w1500h2289_160_.jpg" alt=""></span></a></li>
+                                    <li><a href="goods-list.html?gid=50688"><span><img class="chatImg chatImg4" src="https://imgali.huaxiaguquan.com/pic/2022/0406/357380608137222391w2658h3510_160_.jpg" alt=""></span></a></li>
+                                    <li><a href="goods-list.html?gid=50688"><span><img class="chatImg chatImg5" src="https://imgali.huaxiaguquan.com/pic/2022/0411/361570590259960941w1500h1516_160_.jpg" alt=""></span></a></li>
+                                    <li><a href="goods-list.html?gid=50688"><span><img class="chatImg chatImg6" src="https://imgali.huaxiaguquan.com/pic/2022/0411/361580669966795981w1500h1845_160_.jpg" alt=""></span></a></li>
+                                    <li><a href="goods-list.html?gid=50688"><span><img class="chatImg chatImg7" src="https://imgali.huaxiaguquan.com/pic/2022/0408/359101784752191241w2208h3540_160_.jpg" alt=""></span></a></li>
+                                    <li><a href="goods-list.html?gid=50688"><span><img class="chatImg chatImg8" src="https://imgali.huaxiaguquan.com/pic/2022/0408/359100658554582441w2142h3372_160_.jpg" alt=""></span></a></li>
+                                    <li><a href="goods-list.html?gid=50688"><span><img class="chatImg chatImg9" src="https://imgali.huaxiaguquan.com/pic/2022/0408/359096788155226121w2262h3504_160_.jpg" alt=""></span></a></li>
+                                </ul>
+                            </div>
+                        </div> -->
+              <!-- <a
+                href="bookstore/book-detail.html?id=23"
+                target="_blank"
+                class="ad-pic-box"
+              >
+                <img
+                  class="ad-pic"
+                  src="//imgali.huaxiaguquan.com/app/v3/images/ad/ad-book.jpg?5"
+                  alt=""
+                />
+              </a> -->
+              <!-- (开放聊天室一定要打开js中的 this.getChatRoom();！！！) -->
+              <!-- <div class="chat-room">
+                <div
+                  style="
+                    display: flex;
+                    padding: 5px;
+                    justify-content: space-between;
+                  "
+                >
+                  <div id="groupName"></div>
+                  <a
+                    class="yellow chartroom-btn"
+                    id="chartroomBtn"
+                    href="jump-chatroom.html"
+                    >点击进入>>></a
+                  >
+                </div>
+                <div class="roll" id="roll">
+                  <ul class="chat-pic" id="chatPic"></ul>
+                </div>
+              </div> -->
+              <!-- <div class="small-banner">
+                            <div class="swiper-container swiper-container2">
+                                <div class="swiper-wrapper" id="banner2">
+                                    <div class="swiper-slide">
+                                        <img src="//imghz.huaxiaguquan.com/pic/2022/0316/2022031613592157892089.jpg" alt="">
+                                        <img src="//imghz.huaxiaguquan.com/pic/2021/1027/2021102715595879781662.jpg" alt="">
+                                    </div>
+                                    <div class="swiper-slide">
+                                        <img src="//imghz.huaxiaguquan.com/pic/2022/0316/2022031613592157892089.jpg" alt="">
+                                        <img src="//imghz.huaxiaguquan.com/pic/2021/1027/2021102715595879781662.jpg" alt="">
+                                    </div>
+                                </div>
+                                <div class="pagination pagination2"></div>
+                            </div>
+                        </div> -->
+            </div>
+          </div>
+          <div class="top-left-box">
+            <div class="attention-qr">
+              <h2><i class="iconfont">&#xe777;</i>关注官方信息</h2>
+              <img
+                src="http://hximg.oss-cn-hangzhou.aliyuncs.com/app/v3/images/qrcode/weiqianbi_qrcode.jpg"
+                alt=""
+              />
+              <p>扫码下载微钱币APP</p>
+              <!-- <img src="https://imgali.huaxiaguquan.com/app/v3/images/qrcode/qr-ks.jpg" alt="">
+                        <p>华夏古泉快手官方账号</p> -->
+            </div>
+            <!-- <div class="attention-letter">
+              <h2>
+                <a href="letter.html"
+                  ><i class="iconfont">&#xe6de;</i>站内客服入口</a
+                >
+              </h2>
+              <ul>
+                <li>
+                  <a href="javascript:;" data-id="12986"
+                    ><em>➊</em> 注册认证,退保证金</a
+                  >
+                </li>
+                <li>
+                  <a href="javascript:;" data-id="219540"
+                    ><em>➋</em> 送拍咨询</a
+                  >
+                </li>
+                <li>
+                  <a href="javascript:;" data-id="4689"><em>➌</em> 收款邮寄</a>
+                </li>
+                <li>
+                  <a href="javascript:;" data-id="3903"><em>➍</em> 售后服务</a>
+                </li>
+                <li>
+                  <a href="javascript:;" data-id="5147"><em>➎</em> 拍品答疑</a>
+                </li>
+                <li>
+                  <a href="javascript:;" data-id="611540"
+                    ><em>➏</em> 评级服务</a
+                  >
+                </li>
+                <li class="no-bor">
+                  <a href="javascript:;" data-id="748940"
+                    ><em>➐</em> 领导投诉</a
+                  >
+                </li>
+              </ul>
+            </div> -->
+            <div class="book">
+              <a href="bookstore/book-detail.html?id=24" target="_blank"
+                ><img
+                  src="https://imgali.huaxiaguquan.com/app/v3/images/book/book3/xbhxgqtl.jpg?2"
+                  alt=""
+              /></a>
+              <!-- <div class="swiper-container swiper-container2">
+                <div class="swiper-wrapper" id="banner2">
+                  <div class="swiper-slide">
+                    <a href="book2.html"
+                      ><img
+                        src="https://imgali.huaxiaguquan.com/app/v3/images/ad/book2.png"
+                        alt=""
+                    /></a>
+                  </div>
+                  <div class="swiper-slide">
+                    <a href="book.html"
+                      ><img
+                        src="https://imgali.huaxiaguquan.com/app/v3/images/ad/book.png?2"
+                        alt=""
+                    /></a>
+                  </div>
+                </div>
+              </div> -->
+            </div>
+          </div>
+          <div class="clear-fix"></div>
+        </div>
+        <div class="lately-auction">
+          <h1>
+            <i class="iconfont">&#xe6dd;</i> 限时竞买专场
+            <!-- <p class="calendar-title"> 
+                        <i class="iconfont">&#xe6e0; <em id="today"></em></i>
+                        专场日历 <span id="curMonth"></span>
+                    </p> -->
+          </h1>
+          <p class="fast-query">
+            <u class="search-label">
+              <a href="javascript:;" data-id="0"><em>古钱</em></a>
+              <a href="javascript:;" data-id="10"><em>先秦</em></a>
+              <a href="javascript:;" data-id="50"><em>元明</em></a>
+              <a href="javascript:;" data-id="60"><em>清</em></a>
+              <a href="javascript:;" data-id="70"><em>花钱</em></a>
+              <a href="javascript:;" data-id="200"><em>机制币</em></a>
+              <a href="javascript:;" data-id="100"><em>纸币</em></a>
+              <a href="javascript:;" data-id="210"><em>银锭</em></a>
+              <span id="myLabel" class="my-label"> </span>
+            </u>
+            <a href="javascript:;" class="add-label" id="addLabel"
+              ><i class="iconfont">&#xe656;</i> 自选钱币</a
+            >
+            <span class="input-label">
+              <input
+                id="inputLabel"
+                type="text"
+                maxlength="7"
+                placeholder="输入标签名称"
+              />
+              <a href="javascript:;" class="iconfont" id="completeLabel"
+                >&#xe663;</a
+              >
+            </span>
+            <a
+              href="javascript:;"
+              class="add-label"
+              id="editLabel"
+              style="display: none"
+            >
+              <span id="edit"><i class="iconfont">&#xe6e1;</i> 删除</span>
+              <span style="display: none" id="complete"
+                ><i class="iconfont">&#xe663;</i> 完成</span
+              >
+            </a>
+            <!-- <a href="javascript:;" class="more" id="more">更多 <i class="iconfont">&#xe601;</i></a> -->
+          </p>
+
+          <!-- <ul class="auction-list no-permission" id="auctionFieldBox"></ul> -->
+          <ul class="auction-list" id="auctionFieldBox"></ul>
+          <!-- <div class="calendar">
+                    <div class="calendar-box">
+                        <h4>
+                            <em>一</em>
+                            <em>二</em>
+                            <em>三</em>
+                            <em>四</em>
+                            <em>五</em>
+                            <em class="yellow">六</em>
+                            <em class="yellow">日</em>
+                        </h4>
+                        <p id="calendarDate"></p>
+                    </div>
+                </div> -->
+          <div class="sessions-list">
+            <ol id="auctionList"></ol>
+          </div>
+          <div class="clear-fix"></div>
+        </div>
+        <div class="already-login">
+          <div class="goods-box" id="joinCollection" style="display: none">
+            <h1>
+              <i class="iconfont">&#xe8bd;</i> 今日竞买关注
+              <a class="pull-right" href="collection.html">更多关注 ></a>
+            </h1>
+            <ul class="goods-list-box" id="collectionBox"></ul>
+            <div class="clear-fix"></div>
+          </div>
+        </div>
+        <!-- <div class="goods-box stamp"> 
+                <h1> <i class="iconfont">&#xe6df;</i> ASG邮票2022年5月 香港专场预展中 (235件藏品)
+                    <em class="auction-label">竞拍中</em> 
+                    <span>2022-05-20  20:00截标</span>
+                </h1>
+                <div class="clear-fix"></div>
+                <ul class="goods-list-box" id="stampBox">
+                    <li>
+                        <div class="goods-img">
+                            <a target="_blank" href="goods-detail.html?id=hn-22-0629-1" class="img-box">
+                                <span><img alt="" class="pic"
+                                        src="https://imgali.huaxiaguquan.com/pic/2022/0406/357370582237329541w2076h3342_160_.jpg"></span>
+                            </a>
+                        </div>
+                        <div class="goods-introduce">
+                            <em class="money"><small>¥</small>30000</em>
+                            <h2><a target="_blank" href="goods-detail.html?id=hn-22-0629-2">开元通宝背定光古佛花钱</a></h2>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="goods-img">
+                            <a target="_blank" href="goods-detail.html?id=hn-22-0629-1" class="img-box">
+                                <span><img alt="" class="pic"
+                                        src="https://imgali.huaxiaguquan.com/pic/2022/0411/361616237895588451w2376h3510_160_.jpg"></span>
+                            </a>
+                        </div>
+                        <div class="goods-introduce">
+                            <em class="money"><small>¥</small>30000</em>
+                            <h2><a target="_blank" href="goods-detail.html?id=hn-22-0629-2">开元通宝背定光古佛花钱</a></h2>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="goods-img">
+                            <a target="_blank" href="goods-detail.html?id=hn-22-0629-1" class="img-box">
+                                <span><img alt="" class="pic"
+                                        src="https://imgali.huaxiaguquan.com/pic/2022/0411/361575399923938911w1500h2231_160_.jpg"></span>
+                            </a>
+                        </div>
+                        <div class="goods-introduce">
+                            <em class="money"><small>¥</small>30000</em>
+                            <h2><a target="_blank" href="goods-detail.html?id=hn-22-0629-2">开元通宝背定光古佛花钱</a></h2>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="goods-img">
+                            <a target="_blank" href="goods-detail.html?id=hn-22-0629-1" class="img-box">
+                                <span><img alt="" class="pic"
+                                        src="https://imgali.huaxiaguquan.com/pic/2022/0411/361573908944490261w1500h2289_160_.jpg"></span>
+                            </a>
+                        </div>
+                        <div class="goods-introduce">
+                            <em class="money"><small>¥</small>30000</em>
+                            <h2><a target="_blank" href="goods-detail.html?id=hn-22-0629-2">开元通宝背定光古佛花钱</a></h2>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="goods-img">
+                            <a target="_blank" href="goods-detail.html?id=hn-22-0629-1" class="img-box">
+                                <span><img alt="" class="pic"
+                                        src="https://imgali.huaxiaguquan.com/pic/2022/0411/361570590259960941w1500h1516_160_.jpg"></span>
+                            </a>
+                        </div>
+                        <div class="goods-introduce">
+                            <em class="money"><small>¥</small>30000</em>
+                            <h2><a target="_blank" href="goods-detail.html?id=hn-22-0629-2">开元通宝背定光古佛花钱</a></h2>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="goods-img">
+                            <a target="_blank" href="goods-detail.html?id=hn-22-0629-1" class="img-box">
+                                <span><img alt="" class="pic"
+                                        src="https://imgali.huaxiaguquan.com/pic/2022/0408/359096788155226121w2262h3504_160_.jpg"></span>
+                            </a>
+                        </div>
+                        <div class="goods-introduce">
+                            <em class="money"><small>¥</small>30000</em>
+                            <h2><a target="_blank" href="goods-detail.html?id=hn-22-0629-2">开元通宝背定光古佛花钱</a></h2>
+                        </div>
+                    </li>
+                </ul>
+                <div class="clear-fix"></div>
+            </div> -->
+        <!-- <div class="winning">
+          <div class="title">
+            <div>
+              <i class="iconfont">&#xe702;</i> 华夏古泉一百名珍评选<em
+                class="red2"
+                >中奖名单</em
+              >
+            </div>
+            <div>
+              古泉百珍上榜名单在<a href="book3.html" class="red2">《新编华夏古泉图录》封底</a>公布!
+            </div>
+          </div>
+          <div id="winningList">
+            <ul>
+              <li></li>
+            </ul>
+          </div>
+        </div> -->
+        <div class="hot-recommend">
+          <h1><i class="iconfont">&#xe6df;</i> 精品推荐</h1>
+          <div class="clear-fix"></div>
+          <ul class="hot-list" id="hotListBox"></ul>
+
+          <div class="clear-fix"></div>
+        </div>
+        <!-- <a href="http://www.shouxi.com/" target="_blank" style="width: 100%">
+          <img
+            style="width: 100%"
+            src="http://hximg.oss-cn-hangzhou.aliyuncs.com/app/v3/images/ad/sxsc.gif"
+            alt=""
+          />
+        </a> -->
+        <div class="search-box">
+          <div class="pull-left price-index">
+            <p>
+              历史成交单价指数 <em>339.56 <i class="iconfont">&#xe6a2;</i></em>
+            </p>
+            <div class="echart" id="main"></div>
+            <!-- <span class="poster-text">广告</span>
+            <a
+              href="https://haocheshenghuo.com/h5.html?channelid=7"
+              target="_blank"
+            >
+              <img
+                class="poster"
+                src="https://mhx.huaxiaguquan.com/banner/poster_2.jpg"
+                alt=""
+              />
+            </a> -->
+          </div>
+          <div class="pull-left hot-search">
+            <p>
+              热搜排行：<i class="iconfont">&#xe766;</i>
+              <span id="hotSearchList"> </span>
+            </p>
+            <div class="search">
+              <input
+                type="text"
+                placeholder="大家都在搜咸丰重宝"
+                id="priceSearchVal"
+              />
+              <a href="javascript:;" id="priceSearch">价格查询</a>
+              <div class="clear-fix"></div>
+              <p>搜索次数：48,244,181</p>
+            </div>
+          </div>
+          <div class="pull-right price-range">
+            <p>价格区间搜索：</p>
+            <div class="s-input">
+              <input type="number" placeholder="最低价" id="p1" />
+              <em></em>
+              <input type="number" placeholder="最高价" id="p2" />
+            </div>
+            <a href="javascript:;" id="showClassify">查询</a>
+          </div>
+          <div class="clear-fix"></div>
+        </div>
+        <div class="row map-row">
+          <div class="news">
+            <h1>华夏新闻</h1>
+            <div class="news-img">
+              <a
+                href="bookstore/book-detail.html?id=23"
+                target="_blank"
+                class="img-box"
+              >
+                <span
+                  ><img
+                    src="//imgali.huaxiaguquan.com/app/v3/images/book/book3/poster.jpg?4"
+                    alt=""
+                /></span>
+              </a>
+              <p><em>首发：《新编华夏古泉图录》</em></p>
+            </div>
+            <ul id="newsBox"></ul>
+          </div>
+          <div class="map">
+            <h1>华夏图库<span>（已上传22016件展品，79063张图片）</span></h1>
+            <ul id="mapBox"></ul>
+          </div>
+          <div class="clear-fix"></div>
+        </div>
+
+        <!-- <div class="alert onceShow">
+          <p>华夏古泉提示</p>
+          <p>网站功能优化,部分栏目调整.带来不便敬请谅解,详情咨询客服.</p>
+          <button>确定</button>
+        </div> -->
+        <div class="mask onceShow"></div>
+        <!-- <p class="no-more">———— 已经到底了 ————</p> -->
+      </div>
+      <!-- 弹窗 -->
+      <div id="dialog">
+        <div class="dialog-box">
+          <h3>系统升级预告</h3>
+          <div>
+            为配合银联工作，进一步提高安全管控，我们将在近期对支付系统进行升级。升级后，单笔支付金额超过5万元的，只能使用银行转账，不支持微信支付宝，请广大藏友悉知，感谢您的理解与配合。
+          </div>
+          <p>
+            <button class="confirm">我已知晓,不再显示</button>
+            <button class="cancel">关闭</button>
+          </p>
+        </div>
+      </div>
+      <div id="dialog2">
+        <div class="dialog-box">
+          <h3>关于<span class="red">机制币、纸币类目</span>买方服务费调整的通知</h3>
+          <div>
+            <p>尊敬的泉友:</p>
+            <p>
+              为持续提升服务质量，经综合评估，自<span class="red">2025年11月1日</span>起，平台<span class="red">机制币、纸币类目</span>的买方服务费将调整为<span class="red">13%</span>此次调整将用于优化交易系统、加强藏品鉴定及完善客户服务，为您提供更安全、高效的收藏体验。同时也提醒泉友出价前详细了解泉品状况，认真评估，并对出价行为负责。感谢您长期以来对华夏古泉网的信任与支持。未来，我们将继续以严谨、专业的准则为您提供更优质的服务,祝您收藏愉快!
+            </p>
+            <p>华夏古泉网</p>
+            <p>2025 年10月15日</p>
+          </div>
+          <p>
+            <button class="confirm">我已知晓,不再显示</button>
+            <button class="cancel">关闭</button>
+          </p>
+        </div>
+      </div>
+    </div>
+    <div id="chatRoomTip" class="chatroom-tip"></div>
+    <div class="foot"></div>
+
+    <!-- <div class="loginFixed" id="loginFixed">
+      <p class="title">Hi,欢迎登录华夏古泉~</p>
+      <p>
+        <button data-type="login">登录</button>
+        <button data-type="register">注册</button>
+      </p>
+      <i class="iconfont close">&#xe61f;</i>
+    </div> -->
+    <!-- 聊天室拍卖 更新必须加版本号！ -->
+    <!-- <script src='https://uploadali.huaxiaguquan.com/api/auction/lang.js?31'></script> -->
+
+    <script src="https://imgali.huaxiaguquan.com/app/v3/js/jquery-1.8.3.min.js"></script>
+    <script src="https://imgali.huaxiaguquan.com/app/v3/js/jquery.placeholder.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
+    <!-- 图片懒加载 -->
+    <script src="https://imgali.huaxiaguquan.com/app/v3/js/jquery.lazyload.min.js"></script>
+    <!-- tip提示 -->
+    <script src="js/plug/tip.js"></script>
+    <!-- 图表 -->
+    <script src="https://imgali.huaxiaguquan.com/app/v3/js/echarts2.min.js"></script>
+    <!-- swiper轮换图 -->
+    <script src="https://imgali.huaxiaguquan.com/app/v3/js/swiper/idangerous.swiper2.7.6.min.js"></script>
+    <!-- 图片滚动 -->
+    <script src="https://imgali.huaxiaguquan.com/app/v3/js/scrollForever.js"></script>
+    <!-- <script src="https://imgali.huaxiaguquan.com/app/v3/js/marquee/jquery.liMarquee.js"></script> -->
+    <!-- 被超提醒 -->
+    <script src="js/config.js?5"></script>
+    <script src="js/plug/public-task.js"></script>
+    <script src="js/plug/notice.js"></script>
+
+    <script src="js/index.js?171"></script>
+  </body>
+</html>

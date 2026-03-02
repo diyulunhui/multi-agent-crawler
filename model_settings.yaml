@@ -1,0 +1,28 @@
+version: 1
+
+runtime:
+  enable_dynamic_orchestration: true
+
+routing:
+  default_model: moonshotai/Kimi-K2-Instruct
+  fallback_model: deepseek-chat
+  route_event_types: DISCOVER_SESSIONS,DISCOVER_LOTS,SNAPSHOT_PRE5,SNAPSHOT_PRE1,SNAPSHOT_FINAL_MONITOR,SESSION_FINAL_SCRAPE
+
+request:
+  timeout_seconds: 8
+  temperature: 0
+  max_tokens: 240
+
+providers:
+  siliconflow:
+    base_url: https://api.siliconflow.cn/v1
+    api_key: sk-xcgychtdngczxtdjgzdqjdodprwzupaoudskhicuohsxfrsg
+  deepseek:
+    base_url: https://api.deepseek.com/v1
+    api_key: sk-f88e3a3906a04ce38863e89594148d4f
+
+models:
+  moonshotai/Kimi-K2-Instruct:
+    provider: siliconflow
+  deepseek-chat:
+    provider: deepseek
