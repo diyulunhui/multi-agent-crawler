@@ -1,0 +1,15 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# IDE
+.idea/
+
+# Local runtime data
+data/
+logs/
+
+# Local model/provider secrets
+model_settings.yaml
+.env
+.env.*

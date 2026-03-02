@@ -16,10 +16,10 @@ request:
 providers:
   siliconflow:
     base_url: https://api.siliconflow.cn/v1
-    api_key: sk-xcgychtdngczxtdjgzdqjdodprwzupaoudskhicuohsxfrsg
+    api_key: YOUR_SILICONFLOW_API_KEY
   deepseek:
     base_url: https://api.deepseek.com/v1
-    api_key: sk-f88e3a3906a04ce38863e89594148d4f
+    api_key: YOUR_DEEPSEEK_API_KEY
 
 models:
   moonshotai/Kimi-K2-Instruct:
