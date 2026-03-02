@@ -74,12 +74,18 @@ class _FakeAdapter:
 
 
 class _FakeScheduler:
+    def __init__(self) -> None:
+        self.snapshot_lot_ids: list[str] = []
+        self.structured_lot_ids: list[str] = []
+
     def schedule_lot_snapshots_with_payload(self, lot, now=None, extra_payload=None):
         # 该用例只验证结构化链路，不关心快照任务数量。
+        self.snapshot_lot_ids.append(lot.lot_id)
         return []
 
     def schedule_lot_structuring(self, lot_id: str, now=None):
         # DISCOVER_LOTS 阶段仅验证会派发结构化任务，不在此处执行。
+        self.structured_lot_ids.append(lot_id)
         return []
 
 
@@ -111,6 +117,7 @@ class LotExecutorStructuredTestCase(unittest.TestCase):
 
     def test_execute_writes_structured_and_review_queue(self) -> None:
         # 结构化已异步化：DISCOVER_LOTS 只负责发现与派发；STRUCTURE_LOT 负责清洗入库。
+        scheduler = _FakeScheduler()
         executor = LotDiscoveryExecutor(
             self.config,
             _FakeAdapter(),
@@ -121,7 +128,7 @@ class LotExecutorStructuredTestCase(unittest.TestCase):
             LotStructuredRepository(self.db),
             ReviewQueueRepository(self.db),
             TitleDescriptionStructuredAgent(),
-            _FakeScheduler(),
+            scheduler,
         )
         task = Task(
             event_type=EventType.DISCOVER_LOTS,
@@ -134,6 +141,7 @@ class LotExecutorStructuredTestCase(unittest.TestCase):
         self.assertTrue(result.success)
         self.assertEqual(1, result.processed_count)
         self.assertEqual(0, result.emitted_task_count)
+        self.assertEqual(["l_low"], scheduler.structured_lot_ids)
 
         with self.db.connection() as conn:
             structured_count = conn.execute("SELECT COUNT(1) AS c FROM lot_structured").fetchone()["c"]
@@ -156,6 +164,48 @@ class LotExecutorStructuredTestCase(unittest.TestCase):
             review_count_after = conn.execute("SELECT COUNT(1) AS c FROM review_queue WHERE status='pending'").fetchone()["c"]
         self.assertEqual(1, structured_count_after)
         self.assertEqual(1, review_count_after)
+
+    def test_execute_should_not_requeue_structuring_when_input_unchanged(self) -> None:
+        # 已有结构化结果且输入无变化时，不应重复派发 STRUCTURE_LOT。
+        scheduler = _FakeScheduler()
+        executor = LotDiscoveryExecutor(
+            self.config,
+            _FakeAdapter(),
+            LotRepository(self.db),
+            LotDetailRepository(self.db),
+            LotClassificationRepository(self.db),
+            LotClassifierAgent(),
+            LotStructuredRepository(self.db),
+            ReviewQueueRepository(self.db),
+            TitleDescriptionStructuredAgent(),
+            scheduler,
+        )
+        discover_task = Task(
+            event_type=EventType.DISCOVER_LOTS,
+            entity_id="s_low",
+            run_at=datetime.now(timezone.utc),
+            priority=TaskPriority.DISCOVERY,
+            payload={"url": "https://www.hxguquan.com/goods-list.html?gid=9001", "session_id": "s_low"},
+        )
+        first = executor.execute(discover_task)
+        self.assertTrue(first.success)
+        self.assertEqual(["l_low"], scheduler.structured_lot_ids)
+
+        # 完成首次结构化，落库 lot_structured。
+        structure_task = Task(
+            event_type=EventType.STRUCTURE_LOT,
+            entity_id="l_low",
+            run_at=datetime.now(timezone.utc),
+            priority=TaskPriority.NEXTDAY_BACKFILL,
+            payload={"lot_id": "l_low"},
+        )
+        structure_result = executor.execute(structure_task)
+        self.assertTrue(structure_result.success)
+
+        scheduler.structured_lot_ids.clear()
+        second = executor.execute(discover_task)
+        self.assertTrue(second.success)
+        self.assertEqual([], scheduler.structured_lot_ids)
 
 
 if __name__ == "__main__":

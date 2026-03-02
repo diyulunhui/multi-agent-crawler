@@ -50,6 +50,26 @@ class TaskSchedulerTestCase(unittest.TestCase):
         self.assertEqual(3, len(tasks))
         self.assertEqual({"SNAPSHOT_PRE5", "SNAPSHOT_PRE1", "SNAPSHOT_FINAL_MONITOR"}, {t.event_type.value for t in tasks})
 
+    def test_schedule_closed_lot_should_skip_pre_snapshots(self) -> None:
+        # 已关闭拍品不应继续调度 PRE5/PRE1，只保留 FINAL 监控任务。
+        now = datetime.now(timezone.utc)
+        lot = Lot(
+            lot_id="l_closed",
+            session_id="s1",
+            title_raw="lot",
+            description_raw=None,
+            category=None,
+            grade_agency=None,
+            grade_score=None,
+            end_time=now - timedelta(minutes=10),
+            status="closed",
+            last_seen_at=now,
+            updated_at=now,
+        )
+        tasks = self.scheduler.schedule_lot_snapshots(lot, now=now)
+        self.assertEqual(1, len(tasks))
+        self.assertEqual({"SNAPSHOT_FINAL_MONITOR"}, {t.event_type.value for t in tasks})
+
     def test_schedule_session_scrapes_contains_stages(self) -> None:
         # 专场任务应包含结标后与次日补抓阶段。
         now = datetime.now(timezone.utc)

@@ -40,31 +40,35 @@ class SchedulePolicy:
             return []
 
         events: list[ScheduledEvent] = []
+        status = (lot.status or "").strip().lower()
+        # 拍前快照仅对“进行中”拍品有效；closed/withdrawn 等终态不再重复调度。
+        should_schedule_pre = status in {"bidding", "running", "open"}
 
-        pre5_at = lot.end_time - timedelta(minutes=self.config.schedule.pre5_minutes)
-        events.append(
-            ScheduledEvent(
-                event_type=EventType.SNAPSHOT_PRE5,
-                entity_id=lot.lot_id,
-                # 使用固定时间点，保证重复发现时 dedupe_key 稳定。
-                run_at=pre5_at,
-                priority=TaskPriority.PRE5,
-                payload={"snapshot_type": "PRE5", "scheduled_end_time": lot.end_time.isoformat()},
-            )
-        )
-
-        if self.config.schedule.enable_pre1:
-            pre1_at = lot.end_time - timedelta(minutes=self.config.schedule.pre1_minutes)
+        if should_schedule_pre:
+            pre5_at = lot.end_time - timedelta(minutes=self.config.schedule.pre5_minutes)
             events.append(
                 ScheduledEvent(
-                    event_type=EventType.SNAPSHOT_PRE1,
+                    event_type=EventType.SNAPSHOT_PRE5,
                     entity_id=lot.lot_id,
                     # 使用固定时间点，保证重复发现时 dedupe_key 稳定。
-                    run_at=pre1_at,
-                    priority=TaskPriority.PRE1,
-                    payload={"snapshot_type": "PRE1", "scheduled_end_time": lot.end_time.isoformat()},
+                    run_at=pre5_at,
+                    priority=TaskPriority.PRE5,
+                    payload={"snapshot_type": "PRE5", "scheduled_end_time": lot.end_time.isoformat()},
                 )
             )
+
+            if self.config.schedule.enable_pre1:
+                pre1_at = lot.end_time - timedelta(minutes=self.config.schedule.pre1_minutes)
+                events.append(
+                    ScheduledEvent(
+                        event_type=EventType.SNAPSHOT_PRE1,
+                        entity_id=lot.lot_id,
+                        # 使用固定时间点，保证重复发现时 dedupe_key 稳定。
+                        run_at=pre1_at,
+                        priority=TaskPriority.PRE1,
+                        payload={"snapshot_type": "PRE1", "scheduled_end_time": lot.end_time.isoformat()},
+                    )
+                )
 
         if self.config.schedule.enable_final_monitor:
             events.append(

@@ -74,6 +74,8 @@ class LotDiscoveryExecutor:
         now = datetime.now(timezone.utc)
         emitted = 0
         for item in parsed_lots:
+            existing_lot = self.lot_repo.get_by_id(item.lot_id)
+            existing_detail = self.lot_detail_repo.get_by_lot_id(item.lot_id)
             end_time = parse_datetime(item.end_time)
             if end_time and end_time.tzinfo is None:
                 end_time = end_time.replace(tzinfo=self.config.timezone)
@@ -101,7 +103,13 @@ class LotDiscoveryExecutor:
                 session_title=item.category,
                 now=now,
             )
-            emitted += len(self.scheduler.schedule_lot_structuring(lot_id=lot.lot_id, now=now))
+            if self._needs_structuring(
+                existing_lot=existing_lot,
+                new_lot=lot,
+                existing_detail=existing_detail,
+                parsed_detail=parsed_detail,
+            ):
+                emitted += len(self.scheduler.schedule_lot_structuring(lot_id=lot.lot_id, now=now))
             emitted += len(
                 self.scheduler.schedule_lot_snapshots_with_payload(
                     lot,
@@ -309,4 +317,47 @@ class LotDiscoveryExecutor:
             tags=[],
             rule_hit="fallback:lot_category",
             confidence_score=Decimal("0.20"),
+        )
+
+    def _needs_structuring(
+        self,
+        existing_lot: Lot | None,
+        new_lot: Lot,
+        existing_detail: LotDetail | None,
+        parsed_detail: ParsedLotDetail | None,
+    ) -> bool:
+        # 已存在结构化结果时，仅在标题/描述输入发生变化后再派发，避免重复回灌队列。
+        if self.structured_repo.get_by_lot_id(new_lot.lot_id) is None:
+            return True
+        if existing_lot is None:
+            return True
+        if self._lot_structuring_signature(existing_lot) != self._lot_structuring_signature(new_lot):
+            return True
+        if parsed_detail is None:
+            return False
+        if existing_detail is None:
+            return True
+        return self._detail_structuring_signature(existing_detail) != self._parsed_detail_structuring_signature(parsed_detail)
+
+    @staticmethod
+    def _lot_structuring_signature(lot: Lot) -> tuple[str, str]:
+        return (
+            lot.title_raw.strip(),
+            (lot.description_raw or "").strip(),
+        )
+
+    @staticmethod
+    def _detail_structuring_signature(detail: LotDetail) -> tuple[str, str, str]:
+        return (
+            detail.title_raw.strip(),
+            (detail.description_raw or "").strip(),
+            (detail.labels_json or "").strip(),
+        )
+
+    @staticmethod
+    def _parsed_detail_structuring_signature(detail: ParsedLotDetail) -> tuple[str, str, str]:
+        return (
+            detail.title_raw.strip(),
+            (detail.description_raw or "").strip(),
+            (detail.labels_json or "").strip(),
         )
