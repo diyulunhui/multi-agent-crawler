@@ -1,0 +1,14 @@
+{
+  "filePath": ".spec-workflow/specs/hx-auction-data-pipeline/tasks.md",
+  "currentVersion": 1,
+  "snapshots": [
+    {
+      "version": 1,
+      "filename": "snapshot-001.json",
+      "timestamp": "2026-02-28T02:41:47.724Z",
+      "trigger": "initial",
+      "approvalId": "approval_1772246507717_bcwloe5cu",
+      "approvalTitle": "Approve tasks for hx-auction-data-pipeline"
+    }
+  ]
+}
