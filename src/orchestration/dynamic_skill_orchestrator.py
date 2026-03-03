@@ -7,12 +7,13 @@ import ssl
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Callable
+from typing import Callable, TypedDict
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from src.config.settings import AppConfig
 from src.domain.events import EventType, Task
+from src.orchestration.langgraph_runtime import END, StateGraph
 from src.orchestration.model_settings import (
     ModelSettingsError,
     OrchestrationModelSettings,
@@ -49,6 +50,15 @@ class OrchestrationDecision:
 # 生产环境默认用 _openai_compatible_chat_completion；
 # 单测里可注入 fake 函数，不依赖外网。
 ChatCompletionFn = Callable[[ProviderConfig, str, list[dict[str, str]], float, int, float], str]
+
+
+class _RoutingGraphState(TypedDict, total=False):
+    task: Task
+    default_target: DispatchTarget
+    default_skill: str
+    messages: list[dict[str, str]]
+    model_chain: list[str]
+    decision: OrchestrationDecision
 
 
 class DynamicSkillOrchestrator:
@@ -99,57 +109,90 @@ class DynamicSkillOrchestrator:
         self.chat_completion_fn = chat_completion_fn or _openai_compatible_chat_completion
         # 启动时预加载一次配置。配置无效会降级成 None（即仅走静态路由）。
         self._settings = self._load_settings()
+        self._decision_graph = self._build_decision_graph()
 
     def select_dispatch_target(self, task: Task) -> DispatchTarget:
         # 提供给调用方的简化入口：只关心“最终执行目标”。
         return self.select_decision(task).target
 
     def select_decision(self, task: Task) -> OrchestrationDecision:
-        """
-        返回完整决策信息（不仅是 target）。
+        graph_state: _RoutingGraphState = {"task": task}
+        final_state = self._decision_graph.invoke(graph_state)
+        decision = final_state.get("decision")
+        if isinstance(decision, OrchestrationDecision):
+            return decision
+        raise RuntimeError("dynamic orchestrator 未产出有效决策。")
 
-        决策流程：
-        1) 先计算静态默认目标（任何时候都可作为回退）。
-        2) 若动态编排未启用/配置不可用，直接返回默认目标。
-        3) 若该事件不在编排范围内，直接返回默认目标。
-        4) 依次尝试 default_model -> fallback_model：
-           - 请求模型
-           - 解析 JSON
-           - skill 归一化
-           - skill -> target 白名单映射
-        5) 任一步失败则尝试下一个模型；全部失败则回退默认目标。
-        """
+    def _build_decision_graph(self):
+        graph = StateGraph(_RoutingGraphState)
+        graph.add_node("init", self._graph_init_node)
+        graph.add_node("llm_route", self._graph_llm_route_node)
+        graph.add_node("fallback", self._graph_fallback_node)
+        graph.set_entry_point("init")
+        graph.add_conditional_edges(
+            "init",
+            self._graph_init_route,
+            {"done": END, "llm": "llm_route"},
+        )
+        graph.add_conditional_edges(
+            "llm_route",
+            self._graph_llm_route_route,
+            {"done": END, "fallback": "fallback"},
+        )
+        graph.add_edge("fallback", END)
+        return graph.compile()
+
+    def _graph_init_node(self, state: _RoutingGraphState) -> _RoutingGraphState:
+        task = state["task"]
         default_target = self._default_target(task.event_type)
         default_skill = self._default_skill(default_target)
+        updates: _RoutingGraphState = {
+            "default_target": default_target,
+            "default_skill": default_skill,
+        }
 
         # 动态编排整体不可用：直接回退。
         if self._settings is None:
-            return OrchestrationDecision(
+            updates["decision"] = OrchestrationDecision(
                 skill_name=default_skill,
                 target=default_target,
                 model_name=None,
                 reason="dynamic_orchestration_disabled",
                 used_fallback_model=False,
             )
+            return updates
 
         # 支持“按事件范围启用编排”，高频任务可选择只走静态，控制成本/延迟。
         if self._settings.route_event_types and task.event_type.value not in self._settings.route_event_types:
-            return OrchestrationDecision(
+            updates["decision"] = OrchestrationDecision(
                 skill_name=default_skill,
                 target=default_target,
                 model_name=None,
                 reason="event_not_in_routing_scope",
                 used_fallback_model=False,
             )
+            return updates
 
         # 构造发给模型的上下文，强制限定输出格式为 JSON。
-        messages = self._build_messages(task, default_skill)
+        updates["messages"] = self._build_messages(task, default_skill)
         model_chain = [self._settings.default_model]
         # fallback_model 与 default_model 去重，避免重复调用同一模型。
         if self._settings.fallback_model and self._settings.fallback_model not in model_chain:
             model_chain.append(self._settings.fallback_model)
+        updates["model_chain"] = model_chain
+        return updates
 
-        # 顺序尝试模型链：默认模型先，失败再回退。
+    @staticmethod
+    def _graph_init_route(state: _RoutingGraphState) -> str:
+        if isinstance(state.get("decision"), OrchestrationDecision):
+            return "done"
+        return "llm"
+
+    def _graph_llm_route_node(self, state: _RoutingGraphState) -> _RoutingGraphState:
+        if self._settings is None:
+            return {}
+        messages = state.get("messages") or []
+        model_chain = state.get("model_chain") or []
         for index, model_name in enumerate(model_chain):
             provider = self._settings.resolve_provider(model_name)
             # 模型未映射 provider：跳过当前模型。
@@ -178,25 +221,39 @@ class DynamicSkillOrchestrator:
                 if target is None:
                     continue
                 # 到这里说明一次模型决策成功，直接返回。
-                return OrchestrationDecision(
-                    skill_name=normalized,
-                    target=target,
-                    model_name=model_name,
-                    reason=self._safe_reason(parsed.get("reason")),
-                    used_fallback_model=index > 0,
-                )
+                return {
+                    "decision": OrchestrationDecision(
+                        skill_name=normalized,
+                        target=target,
+                        model_name=model_name,
+                        reason=self._safe_reason(parsed.get("reason")),
+                        used_fallback_model=index > 0,
+                    )
+                }
             except (HTTPError, URLError, TimeoutError, ValueError, KeyError):
                 # 任何模型调用/解析异常都不中断主流程，继续尝试下一个模型。
                 continue
+        return {}
 
+    @staticmethod
+    def _graph_llm_route_route(state: _RoutingGraphState) -> str:
+        if isinstance(state.get("decision"), OrchestrationDecision):
+            return "done"
+        return "fallback"
+
+    def _graph_fallback_node(self, state: _RoutingGraphState) -> _RoutingGraphState:
+        default_target = state["default_target"]
+        default_skill = state["default_skill"]
         # 所有模型都失败时，回退到静态规则路由。
-        return OrchestrationDecision(
-            skill_name=default_skill,
-            target=default_target,
-            model_name=None,
-            reason="llm_failed_use_rule_fallback",
-            used_fallback_model=False,
-        )
+        return {
+            "decision": OrchestrationDecision(
+                skill_name=default_skill,
+                target=default_target,
+                model_name=None,
+                reason="llm_failed_use_rule_fallback",
+                used_fallback_model=False,
+            )
+        }
 
     def _load_settings(self) -> OrchestrationModelSettings | None:
         # 开关层：环境变量可全局关闭动态编排。

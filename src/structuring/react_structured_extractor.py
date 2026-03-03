@@ -3,9 +3,10 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, TypedDict
 from urllib.error import HTTPError, URLError
 
+from src.orchestration.langgraph_runtime import END, StateGraph
 from src.orchestration.model_settings import OrchestrationModelSettings, ProviderConfig
 from src.scraping.normalizers import clean_text
 
@@ -21,6 +22,19 @@ class ReactExtractionOutput:
     normalized_payload: dict[str, object]
     trace_hits: list[str]
     model_name: str
+
+
+class _ReactGraphState(TypedDict, total=False):
+    title: str
+    description: str
+    labels: list[str]
+    merged_text: str
+    rule_hint: dict[str, object]
+    messages: list[dict[str, str]]
+    trace_hits: list[str]
+    step: int
+    status: str
+    output: ReactExtractionOutput
 
 
 class ReactStructuredExtractor:
@@ -42,6 +56,7 @@ class ReactStructuredExtractor:
         self.normalize_payload_fn = normalize_payload_fn
         self.rule_extract_fn = rule_extract_fn
         self.max_steps = max(1, min(max_steps, 5))
+        self._graph = self._build_graph()
 
     def extract(
         self,
@@ -63,65 +78,139 @@ class ReactStructuredExtractor:
             base_payload=base_payload,
             rule_hint=rule_hint,
         )
-        trace_hits: list[str] = []
+        state: _ReactGraphState = {
+            "title": title,
+            "description": description,
+            "labels": labels,
+            "merged_text": merged_text,
+            "rule_hint": rule_hint,
+            "messages": messages,
+            "trace_hits": [],
+            "step": 0,
+            "status": "loop",
+        }
+        final_state = self._graph.invoke(state)
+        output = final_state.get("output")
+        return output if isinstance(output, ReactExtractionOutput) else None
 
-        for step in range(1, self.max_steps + 1):
-            model_reply = self._call_model_chain(messages)
-            if model_reply is None:
-                return None
-            model_name, raw_text = model_reply
-            parsed = self.parse_model_response_fn(raw_text)
-            if parsed is None:
-                messages.append(
+    def _build_graph(self):
+        graph = StateGraph(_ReactGraphState)
+        graph.add_node("react_step", self._graph_react_step)
+        graph.set_entry_point("react_step")
+        graph.add_conditional_edges(
+            "react_step",
+            self._graph_route,
+            {"loop": "react_step", "done": END},
+        )
+        return graph.compile()
+
+    @staticmethod
+    def _graph_route(state: _ReactGraphState) -> str:
+        status = str(state.get("status") or "")
+        if status in {"done", "fail", "exceeded"}:
+            return "done"
+        return "loop"
+
+    def _graph_react_step(self, state: _ReactGraphState) -> _ReactGraphState:
+        step = int(state.get("step", 0))
+        if step >= self.max_steps:
+            return {"status": "exceeded"}
+
+        title = str(state.get("title") or "")
+        description = str(state.get("description") or "")
+        labels = state.get("labels") or []
+        messages = state.get("messages") or []
+        merged_text = str(state.get("merged_text") or "")
+        rule_hint = state.get("rule_hint") or {}
+        trace_hits = list(state.get("trace_hits") or [])
+        step_index = step + 1
+
+        model_reply = self._call_model_chain(messages)
+        if model_reply is None:
+            return {"step": step_index, "status": "fail"}
+
+        model_name, raw_text = model_reply
+        parsed = self.parse_model_response_fn(raw_text)
+        if parsed is None:
+            return {
+                "messages": messages
+                + [
                     {
                         "role": "user",
                         "content": "输出解析失败，请仅返回严格 JSON，继续 action 或 final。",
                     }
-                )
-                continue
+                ],
+                "trace_hits": trace_hits,
+                "step": step_index,
+                "status": "loop",
+            }
 
-            node_type = str(parsed.get("type") or "").strip().lower()
-            if node_type == "final":
-                result_node = parsed.get("result")
-                if not isinstance(result_node, dict):
-                    messages.append(
-                        {"role": "user", "content": "final.result 非法，请补全后重试。"}
-                    )
-                    continue
-                normalized = self.normalize_payload_fn(result_node, title, description, labels)
-                if normalized is None:
-                    messages.append(
-                        {"role": "user", "content": "final.result 字段不可用，请结合证据修正后再输出。"}
-                    )
-                    continue
-                return ReactExtractionOutput(
+        node_type = str(parsed.get("type") or "").strip().lower()
+        if node_type == "final":
+            result_node = parsed.get("result")
+            if not isinstance(result_node, dict):
+                return {
+                    "messages": messages + [{"role": "user", "content": "final.result 非法，请补全后重试。"}],
+                    "trace_hits": trace_hits,
+                    "step": step_index,
+                    "status": "loop",
+                }
+            normalized = self.normalize_payload_fn(result_node, title, description, labels)
+            if normalized is None:
+                return {
+                    "messages": messages
+                    + [
+                        {
+                            "role": "user",
+                            "content": "final.result 字段不可用，请结合证据修正后再输出。",
+                        }
+                    ],
+                    "trace_hits": trace_hits,
+                    "step": step_index,
+                    "status": "loop",
+                }
+            return {
+                "output": ReactExtractionOutput(
                     normalized_payload=normalized,
                     trace_hits=trace_hits[:8],
                     model_name=model_name,
-                )
+                ),
+                "step": step_index,
+                "status": "done",
+            }
 
-            action = str(parsed.get("action") or "").strip()
-            args = parsed.get("args")
-            if node_type != "action" or action not in self.ALLOWED_ACTIONS or not isinstance(args, dict):
-                messages.append(
+        action = str(parsed.get("action") or "").strip()
+        args = parsed.get("args")
+        if node_type != "action" or action not in self.ALLOWED_ACTIONS or not isinstance(args, dict):
+            return {
+                "messages": messages
+                + [
                     {
                         "role": "user",
                         "content": "仅允许 action=find_keyword/regex_extract/rule_extract 或 final。",
                     }
-                )
-                continue
+                ],
+                "trace_hits": trace_hits,
+                "step": step_index,
+                "status": "loop",
+            }
 
-            observation, trace_hit = self._run_action(action=action, args=args, merged_text=merged_text, rule_hint=rule_hint)
-            if trace_hit is not None and trace_hit not in trace_hits:
-                trace_hits.append(trace_hit)
-            messages.append({"role": "assistant", "content": json.dumps(parsed, ensure_ascii=False, sort_keys=True)})
-            messages.append(
+        observation, trace_hit = self._run_action(action=action, args=args, merged_text=merged_text, rule_hint=rule_hint)
+        if trace_hit is not None and trace_hit not in trace_hits:
+            trace_hits.append(trace_hit)
+        return {
+            "messages": messages
+            + [{"role": "assistant", "content": json.dumps(parsed, ensure_ascii=False, sort_keys=True)}]
+            + [
                 {
                     "role": "user",
-                    "content": f"工具观察#{step}: {observation}。请继续下一步，或输出 final。",
+                    "content": f"工具观察#{step_index}: {observation}。请继续下一步，或输出 final。",
                 }
-            )
-        return None
+            ],
+            "trace_hits": trace_hits,
+            "step": step_index,
+            "status": "loop",
+        }
 
     def _call_model_chain(self, messages: list[dict[str, str]]) -> tuple[str, str] | None:
         model_chain = [self.settings.default_model]
